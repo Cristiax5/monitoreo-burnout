@@ -1,53 +1,67 @@
 import streamlit as st
 import random
 
-# ... (Mantén toda la parte de configuración, inicialización e inventario igual al código anterior) ...
+# Configuración
+st.set_page_config(page_title="Mente Sana", page_icon="🧠", layout="centered")
 
-# LÓGICA DE VARIACIÓN DIARIA (Usamos la racha para variar contenido)
+# Inicialización
+if "registrado" not in st.session_state: st.session_state.registrado = False
+if "racha_dias" not in st.session_state: st.session_state.racha_dias = 1
+if "inventario" not in st.session_state:
+    st.session_state.inventario = {"🍏 Manzana Dorada": 1, "💡 Lámpara de Incubación": 1, "🌾 Semillas de la Calma": 2}
+if "accion_mascota" not in st.session_state: st.session_state.accion_mascota = "¡Hola! Estoy listo para cuidar tu mente."
+
+def obtener_sistema_mascota(racha):
+    if racha <= 5: return "🥚", f"Faltan {5 - racha} días para que el huevo rompa."
+    elif racha <= 30: return "🐥", "¡Pollito Bebé! Creciendo día a día."
+    elif racha <= 60: return "🦆", "¡Pato Silvestre! Disfrutando el camino."
+    elif racha <= 90: return "🦉", "¡Búho de Atenea! Sabiduría en tus estudios."
+    elif racha <= 120: return "🦅", "¡Águila Real! Volando alto."
+    elif racha < 365: return "🦚", "¡Pavo Real! Armonía total."
+    else: return "🦅🔥", "¡LEGENDARIO: AVE FÉNIX!"
+
+# Contenido dinámico
 def obtener_contenido_diario(carrera, racha):
-    # Consejos que cambian según el día (racha)
-    consejos = [
-        "Hoy practica la técnica pomodoro: 25 min estudio, 5 descanso.",
-        "Recuerda hidratarte bien, ¡tu cerebro necesita agua para procesar toda esa info!",
-        "Si hoy te sientes abrumado, escribe en una hoja lo que te preocupa y rómpela.",
-        "Regálate 5 minutos de silencio absoluto hoy antes de dormir.",
-        "A veces, dejar de estudiar un ratito es la mejor forma de aprender más."
-    ]
-    # Elegimos un consejo basado en el día
-    consejo_del_dia = consejos[racha % len(consejos)]
-    
-    # Banco de preguntas con variaciones temáticas
-    bancos = {
-        "Medicina": [
-            ["¿Lograste descansar algo después de tu última guardia?", "¿Sientes que la teoría está chocando con la realidad clínica hoy?"],
-            ["¿Has tenido tiempo de comer algo nutritivo o solo café?", "¿La presión por aprenderte los cuadros clínicos te está pesando hoy?"]
-        ],
-        "Enfermería": [
-            ["¿Cómo se siente tu espalda después de la jornada de hoy?", "¿La carga emocional de tus pacientes está pesando hoy?"],
-            ["¿Lograste terminar todo tu papeleo a tiempo?", "¿Sientes que el ambiente en el hospital fue muy caótico hoy?"]
-        ],
-        "Nutrición": [
-            ["¿Cuántos cálculos dietéticos has tenido que ajustar hoy?", "¿Sientes que tus pacientes siguen tus planes al pie de la letra?"],
-            ["¿El estrés te está haciendo descuidar tu propia dieta?", "¿Te sientes actualizado con las últimas tendencias metabólicas?"]
-        ]
+    consejos = ["Practica la técnica pomodoro.", "Toma agua, tu cerebro lo necesita.", "Escribe tus preocupaciones y rómpelas.", "Regálate 5 minutos de silencio.", "Descansar es avanzar."]
+    preguntas_banco = {
+        "Medicina": ["¿Cómo va tu energía hoy?", "¿El estrés clínico te pesa hoy?"],
+        "Enfermería": ["¿Cansancio físico hoy?", "¿La carga emocional está fuerte?"],
+        "Nutrición": ["¿Muchos cálculos hoy?", "¿Has comido bien tú?"]
     }
-    
-    # Elige preguntas según la carrera y el día
-    bloque = bancos.get(carrera, [["¿Cómo va tu energía?", "¿Sientes estrés escolar?"]])
-    preguntas_del_dia = bloque[racha % len(bloque)]
-    
-    return preguntas_del_dia, consejo_del_dia
+    return preguntas_banco.get(carrera, ["¿Cómo te sientes?", "¿Mucho estrés?"]), consejos[racha % len(consejos)]
 
-# ... (Dentro de la lógica de la pantalla, reemplaza el bloque de preguntas fijas por este):
-
-    # Llamamos a nuestra nueva función dinámica
-    preguntas_dinamicas, consejo = obtener_contenido_diario(st.session_state.carrera_usuario, st.session_state.racha_dias)
+# --- INTERFAZ ---
+if not st.session_state.registrado:
+    st.title("🧠 Mente Sana")
+    nombre = st.text_input("Nombre:")
+    carrera = st.selectbox("Carrera:", ["Medicina", "Enfermería", "Nutrición"])
+    if st.button("Comenzar"):
+        st.session_state.nombre_usuario = nombre
+        st.session_state.carrera_usuario = carrera
+        st.session_state.registrado = True
+        st.rerun()
+else:
+    st.header(f"Hola {st.session_state.nombre_usuario}")
+    avatar, estado = obtener_sistema_mascota(st.session_state.racha_dias)
     
-    st.info(f"💡 **Consejo para ti hoy:** {consejo}")
+    col1, col2 = st.columns([1, 2])
+    col1.markdown(f"<h1 style='font-size:80px'>{avatar}</h1>", unsafe_allow_html=True)
+    col2.write(f"**Racha:** {st.session_state.racha_dias} días")
+    col2.info(estado)
+    
+    preguntas, consejo = obtener_contenido_diario(st.session_state.carrera_usuario, st.session_state.racha_dias)
+    st.warning(f"💡 {consejo}")
+    
+    puntos = 0
+    for i, q in enumerate(preguntas):
+        puntos += st.slider(q, 0, 5, 0)
+    
+    if st.button("Analizar"):
+        st.session_state.inventario[random.choice(list(st.session_state.inventario.keys()))] += 1
+        st.success("¡Análisis guardado! Revisa tu mochila.")
+        st.rerun()
 
-    puntos_totales = 0
-    # Construir el cuestionario con las preguntas del día
-    for i, q in enumerate(preguntas_dinamicas):
-        with st.container(border=True):
-            seleccion = st.radio(q, list(opciones.keys()), index=0, key=f"p_{i}")
-            puntos_totales += opciones[seleccion]
+    # Barra lateral
+    if st.sidebar.button("Simular día 365"):
+        st.session_state.racha_dias = 365
+        st.rerun()
