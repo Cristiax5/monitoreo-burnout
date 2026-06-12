@@ -4,59 +4,50 @@ import random
 # Configuración de página
 st.set_page_config(page_title="Mente Sana", page_icon="🧠", layout="centered")
 
-# Estilos CSS
+# Estilos CSS más cálidos y amigables
 st.markdown("""
     <style>
-    .stApp { background: linear-gradient(180deg, #f0f4f8 0%, #d9e2ec 100%); }
-    .card { background: white; padding: 25px; border-radius: 20px; border-left: 8px solid #3182ce; margin-bottom: 20px; box-shadow: 0 4px 10px rgba(0,0,0,0.1); }
-    .hero { text-align: center; padding: 40px; background: linear-gradient(135deg, #2b6cb0 0%, #4299e1 100%); color: white; border-radius: 25px; margin-bottom: 30px; }
+    .stApp { background-color: #fdfcf9; }
+    .hero { text-align: center; padding: 40px; background: #eef2f3; border-radius: 30px; color: #2d3748; margin-bottom: 30px; }
+    .card { background: #ffffff; padding: 25px; border-radius: 25px; border: 1px solid #edf2f7; margin-bottom: 20px; box-shadow: 0 4px 15px rgba(0,0,0,0.05); }
+    .stButton>button { border-radius: 50px !important; background-color: #63b3ed !important; color: white !important; font-weight: bold; }
     </style>
     """, unsafe_allow_html=True)
 
-# Lógica de Mascota Evolutiva
+# Lógica de Evolución Progresiva (Día a día)
 def obtener_mascota(racha):
     if racha <= 5: return "🥚", "Huevo Místico"
-    elif racha <= 30: return "🐥", "Pollito en crecimiento"
+    elif racha <= 30: return "🐥", "Pollito Bebé"
     elif racha <= 60: return "🦆", "Pato Silvestre"
-    elif racha <= 90: return "🦉", "Búho de Atenea"
+    elif racha <= 90: return "🦉", "Búho Sabio"
     elif racha <= 120: return "🦅", "Águila Real"
-    elif racha < 365: return "🦚", "Pavo Real"
+    elif racha < 365: return "🦚", "Pavo Real Majestuoso"
     else: return "🔥", "¡AVE FÉNIX INMORTAL!"
 
 # Inicialización
 if "registrado" not in st.session_state: st.session_state.registrado = False
 if "racha" not in st.session_state: st.session_state.racha = 1
 
-# --- BARRA LATERAL PROTEGIDA ---
+# --- PANEL DE ADMINISTRACIÓN (Oculto para presentación) ---
 with st.sidebar:
-    st.title("⚙️ Panel de Control")
-    password = st.text_input("Clave de Administrador:", type="password")
-    if password == "Fenix2026":  # Tu clave secreta
-        st.success("Modo Edición Activado")
-        if st.button("🔥 Evolucionar a Fénix"):
-            st.session_state.racha = 366
-            st.rerun()
-        if st.button("🔄 Resetear Racha"):
-            st.session_state.racha = 1
-            st.rerun()
+    st.write("---")
+    if st.text_input("Clave Admin", type="password") == "Fenix2026":
+        if st.button("Avanzar 1 día"): st.session_state.racha += 1; st.rerun()
 
 # --- BIENVENIDA ---
 if not st.session_state.registrado:
-    st.markdown("<div class='hero'><h1>¡Hola! Qué gusto verte por aquí. 🧠</h1><p>Esta es tu zona segura para cuidar de tu bienestar mental.</p></div>", unsafe_allow_html=True)
+    st.markdown("<div class='hero'><h1>¡Hola! Es un gusto verte. 🌿</h1><p>Estamos listos para cuidar de tu bienestar mental hoy.</p></div>", unsafe_allow_html=True)
     nombre = st.text_input("¿Cómo te gusta que te llamen?")
-    carrera = st.selectbox("¿Qué estudias?", ["Medicina", "Enfermería", "Nutrición"])
-    if st.button("Comenzar mi cuidado diario", use_container_width=True):
+    if st.button("Comenzar mi cuidado diario"):
         if nombre:
             st.session_state.nombre = nombre
             st.session_state.registrado = True
             st.rerun()
-        else:
-            st.warning("Por favor, dinos cómo prefieres que te llamemos.")
 else:
     avatar, etapa = obtener_mascota(st.session_state.racha)
-    st.markdown(f"<div style='text-align:center; font-size: 80px;'>{avatar}</div>", unsafe_allow_html=True)
-    st.markdown(f"<h3 style='text-align:center;'>{st.session_state.nombre}, vas en tu {etapa}</h3>", unsafe_allow_html=True)
-    st.markdown(f"<p style='text-align:center;'>Llevas una racha de <b>{st.session_state.racha} días</b> constante. ¡Felicidades!</p>", unsafe_allow_html=True)
+    st.markdown(f"<div style='text-align:center; font-size: 90px;'>{avatar}</div>", unsafe_allow_html=True)
+    st.markdown(f"<h2 style='text-align:center; color: #4a5568;'>{st.session_state.nombre}, vas en tu {etapa}</h2>", unsafe_allow_html=True)
+    st.markdown(f"<p style='text-align:center;'>Día de racha: <b>{st.session_state.racha}</b>. ¡Cada día es un paso adelante!</p>", unsafe_allow_html=True)
     
     st.markdown("---")
     
@@ -73,22 +64,22 @@ else:
         ("🧘", "¿Sientes que tu mente nunca descansa del estudio?")
     ]
     
-    opciones = {"😎 ¡Para nada!": 0, "🙂 A veces": 1, "😓 Sí, seguido": 2, "💥 Definitivamente": 3}
     puntos = 0
-    
     for emoji, texto in preguntas:
         st.markdown(f"<div class='card'>", unsafe_allow_html=True)
-        resp = st.radio(f"{emoji} {texto}", list(opciones.keys()))
-        puntos += opciones[resp]
+        resp = st.radio(f"{emoji} {texto}", ["😎 ¡Para nada!", "🙂 A veces", "😓 Sí, seguido", "💥 Definitivamente"], horizontal=True)
+        valores = {"😎 ¡Para nada!": 0, "🙂 A veces": 1, "😓 Sí, seguido": 2, "💥 Definitivamente": 3}
+        puntos += valores[resp]
         st.markdown("</div>", unsafe_allow_html=True)
     
-    if st.button("Finalizar Análisis", use_container_width=True):
-        st.session_state.racha += 1
+    if st.button("Finalizar Análisis"):
+        st.session_state.racha += 1 # Evolución progresiva diaria
         st.markdown("---")
         if puntos >= 15:
-            st.error("⚠️ **Diagnóstico: Alerta de Estrés**")
+            st.error("⚠️ **Diagnóstico de atención**")
+            st.write("Has tenido días pesados. Por favor, intenta:")
             st.info("🌬️ **Respiración 4-7-8:** Inhala 4s, mantén 7s, exhala 8s.")
-            st.info("🌍 **Técnica 5-4-3-2-1:** Reconecta con tus sentidos.")
+            st.info("🌍 **Técnica 5-4-3-2-1:** Reconecta con tu entorno físico.")
         else:
-            st.success("✅ ¡Equilibrio emocional estable!")
-        st.info(f"✨ **Frase:** '{random.choice(['Eres más que tus calificaciones.', 'La constancia es la llave.', 'Cuidar de ti es tu mayor éxito.'])}'")
+            st.success("✅ ¡Qué bien! Tu estado emocional es equilibrado.")
+        st.info(f"✨ **Frase:** '{random.choice(['Eres más que tus deberes.', 'La constancia es la llave.', 'Cuidar de ti es tu mayor éxito.'])}'")
