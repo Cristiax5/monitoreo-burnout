@@ -1,124 +1,126 @@
 import streamlit as st
-import datetime
 
-# Configuración de la página
-st.set_page_config(page_title="MenteSana - Monitor de Burnout", page_icon="🧠", layout="centered")
-
-# --- ESTILOS EN BLOQUE (Notas del Peer) ---
-st.title("🧠 MenteSana")
-st.subheader("Tu monitor inteligente de estrés y burnout académico")
-st.write("Registra tu día para evaluar cómo impacta la carga de estudio en tu cuerpo.")
-
-st.markdown("---")
-
-# --- PANEL LATERAL: HISTORIAL SIMULADO (Para activar el semáforo) ---
-st.sidebar.header("📊 Simulador de Historial")
-st.sidebar.write("Para probar cómo reacciona el semáforo de la app, simula cómo te has sentido los últimos días:")
-
-simular_crisis = st.sidebar.checkbox("Simular 4 días seguidos en crisis (Estrés 5, <5h sueño, gastritis)", value=False)
-
-# --- 1. PANTALLA DE REGISTRO DIARIO (El Formulario) ---
-st.header("📝 Registro Diario (Check-in Nocturno)")
-st.caption(f"Fecha de registro: {datetime.date.today().strftime('%d/%m/%Y')}")
-
-# Pregunta 1: Carga Académica
-carga_academica = st.slider(
-    "1. Carga Académica: ¿Qué tanta tarea, proyectos o estudio tuviste hoy?",
-    min_value=1, max_value=5, value=3,
-    help="1: Muy ligera / 5: Saturado, sin tiempo libre"
+# Configuración principal de la página (Diseño Clínico)
+st.set_page_config(
+    page_title="Monitoreo de Burnout Clínico", 
+    page_icon="🩺", 
+    layout="centered"
 )
 
-# Pregunta 2: Estrés Psicológico
-estres_psico = st.select_slider(
-    "2. Nivel de Estrés Psicológico: ¿Cómo te sentiste emocionalmente?",
-    options=[1, 2, 3, 4, 5],
-    value=3,
-    format_func=lambda x: {1: "😌 Muy Relajado", 2: "🙂 Tranquilo", 3: "😐 Presionado", 4: "😰 Muy Estresado", 5: "🤯 Al límite / Desbordado"}[x]
-)
+# Inicializar las variables de la sesión
+if "registrado" not in st.session_state:
+    st.session_state.registrado = False
+if "nombre_usuario" not in st.session_state:
+    st.session_state.nombre_usuario = ""
+if "rol_usuario" not in st.session_state:
+    st.session_state.rol_usuario = ""
 
-# Pregunta 3: Manifestaciones Somáticas
-st.write("3. Manifestaciones Somáticas: Selecciona los síntomas físicos que presentaste hoy:")
-col_sintomas1, col_sintomas2 = st.columns(2)
-
-with col_sintomas1:
-    gastritis = st.checkbox("Dolor de estómago / Acidez / Gastritis")
-    migrana = st.checkbox("Dolor de cabeza / Migraña")
-with col_sintomas2:
-    insomnio = st.checkbox("Insomnio / Problemas para dormir")
-    tension = st.checkbox("Tensión muscular / Dolor de cuello")
-
-# Pregunta 4: Horas de sueño
-horas_sueno = st.number_input("4. Horas de sueño: ¿Cuántas horas dormiste anoche?", min_value=0.0, max_value=24.0, value=7.0, step=0.5)
-
-# --- 2. PANTALLA DE HISTORIAL Y ALERTAS (La Vista de Datos) ---
-st.markdown("---")
-st.header("🚦 Estado Actual y Semáforo del Burnout")
-
-# Lógica del motor de alertas
-# Si el usuario activa el simulador o si el registro de hoy cumple las condiciones críticas
-es_crisis_hoy = estres_psico == 5 and horas_sueno < 5.0 and gastritis
-
-if simular_crisis or es_crisis_hoy:
-    st.error("🔴 **ALERTA CRÍTICA: SEMÁFORO EN ROJO**")
-    st.markdown(
-        """
-        > 🚨 **¡Ojo! Tu cuerpo está cobrando factura.** Llevas un ritmo insostenible que está afectando tu salud física 
-        > (gastritis/insomnio) y mental. Es momento obligatorio de hacer una pausa. No puedes rendir académicamente 
-        > si colapsas primero.
-        """
-    )
-elif estres_psico >= 4 or (gastritis or migrana or insomnio or tension):
-    st.warning("🟡 **ALERTA PREVENTIVA: SEMÁFORO EN AMARILLO**")
-    st.markdown(
-        """
-        > ⚠️ **Atención:** Tus niveles de estrés están elevados y tu cuerpo está empezando a somatizar (manifestar el estrés físicamente). 
-        > Revisa tus horarios de sueño y utiliza las técnicas de la sección de abajo antes de que pases a semáforo rojo.
-        """
-    )
-else:
-    st.success("🟢 **SEMÁFORO EN VERDE**")
-    st.markdown("> 😎 **¡Vas muy bien!** Tus niveles de estrés son manejables y estás logrando un equilibrio saludable hoy. Sigue así.")
-
-# Métrica visual rápida
-st.metric(label="Impacto Físico Detectado", value=f"{sum([gastritis, migrana, insomnio, tension])} de 4 síntomas")
-
-# --- 3. PANTALLA DE PRIMEROS AUXILIOS PSICOLÓGICOS (Recursos) ---
-st.markdown("---")
-st.header("🩹 Primeros Auxilios Psicológicos")
-st.write("Toma un respiro y utiliza estas herramientas avaladas por profesionales de la salud mental:")
-
-tab1, tab2 = st.tabs(["🧘 Respiración Cuadrada", "⏱️ Método Pomodoro"])
-
-with tab1:
-    st.subheader("Técnica de Respiración Cuadrada (Reset del Sistema Nervioso)")
-    st.write("Esta técnica reduce la ansiedad instantáneamente al activar el sistema nervioso parasimpático:")
+# ==========================================
+# INTERFAZ DE REGISTRO / INICIO
+# ==========================================
+if not st.session_state.registrado:
+    st.markdown("<h1 style='text-align: center; color: #004b49;'>🩺 Sistema de Evaluación de Burnout</h1>", unsafe_allow_html=True)
+    st.markdown("<h4 style='text-align: center; color: #555555;'>Módulo de Monitoreo Dinámico y Prevención</h4>", unsafe_allow_html=True)
     
-    # Simulación visual simple de los tiempos
-    st.info("Sigue este ritmo mentalmente:")
-    st.markdown(
-        """
-        1. 🫁 **Inhala** profundamente contando hasta **4 segundos**.
-        2. 🛑 **Retén** el aire en tus pulmones durante **4 segundos**.
-        3. 💨 **Exhala** todo el aire lentamente durante **4 segundos**.
-        4. ⏸️ **Espera** con los pulmones vacíos durante **4 segundos** antes de volver a empezar.
+    st.info("🔒 Por favor, ingresa tus datos en el formulario médico de abajo para desbloquear tu evaluación personalizada.")
+    
+    # Caja visual para el formulario
+    with st.container():
+        nombre = st.text_input("👤 Nombre Completo o Iniciales:", placeholder="Ej. Dr. J. Pérez o Alumno M. Gómez")
+        rol = st.selectbox(
+            "📋 Selecciona tu Rol Actual:", 
+            [
+                "Estudiante de Ciencias de la Salud / Pregrado", 
+                "Médico Interno / Residente / Carga Hospitalaria", 
+                "Profesional de la Salud Activo"
+            ]
+        )
+        st.markdown("---")
         
-        *Repite este ciclo 5 veces.*
-        """
-    )
+        if st.button("🔓 Iniciar Evaluación Clínica", type="primary", use_container_width=True):
+            if nombre.strip() == "":
+                st.error("⚠️ El campo de nombre es obligatorio para el registro clínico.")
+            else:
+                st.session_state.nombre_usuario = nombre
+                st.session_state.rol_usuario = rol
+                st.session_state.registrado = True
+                st.rerun()
 
-with tab2:
-    st.subheader("Método Pomodoro (Estudio Eficiente sin Agotamiento)")
-    st.write("El burnout ocurre por estudiar por horas eternas sin descansos. Aplica esto hoy mismo:")
+# ==========================================
+# INTERFAZ INTERACTIVA (CUESTIONARIO DINÁMICO)
+# ==========================================
+else:
+    # Barra lateral con información del usuario
+    with st.sidebar:
+        st.markdown("<h3 style='color: #004b49;'>👤 Expediente Activo</h3>", unsafe_allow_html=True)
+        st.write(f"**Evaluado:** {st.session_state.nombre_usuario}")
+        st.write(f"**Sector:** {st.session_state.rol_usuario}")
+        st.markdown("---")
+        if st.button("❌ Cerrar Sesión y Salir"):
+            st.session_state.registrado = False
+            st.session_state.nombre_usuario = ""
+            st.rerun()
+
+    # Título principal de la evaluación
+    st.markdown(f"<h2 style='color: #004b49;'>📊 Evaluación Interactiva: {st.session_state.nombre_usuario}</h2>", unsafe_allow_html=True)
+    st.caption(f"Cuestionario adaptado para el perfil: **{st.session_state.rol_usuario}**")
+    st.markdown("---")
     
-    st.markdown(
-        """
-        *   **Bloque de Enfoque:** Elige una tarea y trabaja en ella intensamente por **25 minutos** (apaga el celular).
-        *   **Descanso Corto:** Detente por **5 minutos** (párate de la silla, estírate, toma agua). No mires redes sociales.
-        *   **El Ciclo:** Repite esto 4 veces.
-        *   **Descanso Largo:** Después de 4 bloques, regálate un descanso largo de **20 a 30 minutos**.
-        """
-    )
+    st.subheader("📋 Escala de Frecuencia de Síntomas")
+    st.write("Selecciona el valor que mejor describa tus últimas semanas: *(0 = Nunca | 3 = A veces | 6 = Todos los días)*")
 
-# Descargo de responsabilidad médico obligatorio
-st.markdown("---")
-st.caption("⚠️ **Aviso de Salud:** Esta aplicación es una herramienta de monitoreo preventivo y educativo. No sustituye la consulta con un psicólogo, psiquiatra o médico general.")
+    # 🧠 BANCO DE PREGUNTAS DINÁMICAS (Cambian según el Rol)
+    preguntas = []
+    
+    if "Estudiante" in st.session_state.rol_usuario:
+        preguntas = [
+            "1. ¿Te sientes emocionalmente agotado por la carga de materias, tareas y exámenes?",
+            "2. ¿Te cuesta más trabajo levantarte por la mañana para ir a clases o a tus prácticas?",
+            "3. ¿Sientes que has perdido el entusiasmo por tu carrera o tus estudios?",
+            "4. ¿Te frustras o te pones de mal humor con facilidad si tus notas no son perfectas?",
+            "5. ¿Sientes que estás demasiado estresado para absorber y memorizar nuevos conocimientos?",
+            "6. ¿Consideras que la presión por mantener buenas calificaciones afecta tu apetito o sueño?",
+            "7. ¿Te has alejado de tus amigos o actividades recreativas por falta de energía académica?",
+            "8. ¿Dudas de tu capacidad para terminar con éxito tus estudios de la salud?",
+            "9. ¿Sientes ansiedad intensa antes de una evaluación académica o simulación clínica?",
+            "10. ¿Al final de la semana te sientes completamente exhausto y sin ganas de hacer nada?"
+        ]
+    else:
+        # Preguntas para Médicos Internos, Residentes o Profesionales
+        preguntas = [
+            "1. ¿Te sientes emocionalmente agotado por el exceso de horas de jornada laboral o guardias?",
+            "2. ¿Sientes cansancio extremo incluso antes de iniciar tu turno en el hospital o clínica?",
+            "3. ¿Sientes que te has vuelto más frío, distante o cínico con los pacientes o compañeros?",
+            "4. ¿Te frustras con rapidez ante complicaciones médicas o imprevistos en tu jornada?",
+            "5. ¿Consideras que la falta de descanso está afectando tu concentración o rendimiento clínico?",
+            "6. ¿Sientes que el tiempo que dedicas a tu profesión te impide tener una vida personal saludable?",
+            "7. ¿Te preocupa cometer algún error debido al cansancio acumulado?",
+            "8. ¿Sientes que tus superiores o la institución no valoran adecuadamente tu esfuerzo diario?",
+            "9. ¿Experimentas síntomas físicos de estrés (dolor de cabeza, tensión) durante tu labor?",
+            "10. ¿Has llegado a pensar que elegiste la profesión equivocada debido al nivel de desgaste?"
+        ]
+
+    # Crear los 10 Sliders interactivos dinámicamente
+    respuestas = []
+    for q in preguntas:
+        v = st.slider(q, 0, 6, 0, key=q)
+        respuestas.append(v)
+
+    st.markdown("---")
+
+    # 🚀 CÁLCULO Y DIAGNÓSTICO
+    if st.button("🎯 Procesar Diagnóstico de Estrés", type="primary", use_container_width=True):
+        puntaje_total = sum(respuestas)
+        max_puntaje = 60 # 10 preguntas x 6 puntos max
+        
+        st.markdown("<h3 style='color: #004b49;'>🎯 Diagnóstico de la Evaluación</h3>", unsafe_allow_html=True)
+        st.metric(label="Índice de Desgaste Emocional", value=f"{puntaje_total} / {max_puntaje} pts")
+        
+        # Lógica de semáforo clínico
+        if puntaje_total <= 20:
+            st.balloons() # 🎉 Animación de globos por buen estado
+            st.success(f"🟢 **Nivel Bajo / Normal:** ¡Excelente, {st.session_state.nombre_usuario}! Te encuentras en un rango estable de salud mental y laboral. Sigue manteniendo tus espacios de esparcimiento.")
+        elif 21 <= puntaje_total <= 40:
+            st.warning(f"🟡 **Nivel Moderado (Fase de Alerta):** Presentas signos de estrés acumulado, {st.session_state.nombre_usuario}. Es recomendable que busques organizar mejor tus tiempos y comiences a implementar técnicas de relajación.")
+        else:
+            st.error(f"🔴 **Nivel Severo (Alerta Crítica de Burnout):** {st.session_state.nombre_usuario}, tus niveles de agotamiento son muy elevados. Es de suma importancia que delegues responsabilidades, extremes precauciones y consideres consultar con un especialista.")
