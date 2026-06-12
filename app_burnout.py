@@ -1,8 +1,16 @@
 import streamlit as st
 import random
 
-# Configuración
+# Configuración visual
 st.set_page_config(page_title="Mente Sana", page_icon="🧠", layout="centered")
+
+# Estilos CSS personalizados para tarjetas elegantes
+st.markdown("""
+    <style>
+    .stApp { background-color: #f5f7f9; }
+    .card { background-color: white; padding: 20px; border-radius: 15px; box-shadow: 0 4px 6px rgba(0,0,0,0.1); margin-bottom: 20px; }
+    </style>
+    """, unsafe_allow_html=True)
 
 # Inicialización
 if "registrado" not in st.session_state: st.session_state.registrado = False
@@ -12,56 +20,65 @@ if "inventario" not in st.session_state:
 if "accion_mascota" not in st.session_state: st.session_state.accion_mascota = "¡Hola! Estoy listo para cuidar tu mente."
 
 def obtener_sistema_mascota(racha):
-    if racha <= 5: return "🥚", f"Faltan {5 - racha} días para que el huevo rompa."
-    elif racha <= 30: return "🐥", "¡Pollito Bebé! Creciendo día a día."
-    elif racha <= 60: return "🦆", "¡Pato Silvestre! Disfrutando el camino."
-    elif racha <= 90: return "🦉", "¡Búho de Atenea! Sabiduría en tus estudios."
-    elif racha <= 120: return "🦅", "¡Águila Real! Volando alto."
-    elif racha < 365: return "🦚", "¡Pavo Real! Armonía total."
-    else: return "🦅🔥", "¡LEGENDARIO: AVE FÉNIX!"
-
-# Contenido dinámico
-def obtener_contenido_diario(carrera, racha):
-    consejos = ["Practica la técnica pomodoro.", "Toma agua, tu cerebro lo necesita.", "Escribe tus preocupaciones y rómpelas.", "Regálate 5 minutos de silencio.", "Descansar es avanzar."]
-    preguntas_banco = {
-        "Medicina": ["¿Cómo va tu energía hoy?", "¿El estrés clínico te pesa hoy?"],
-        "Enfermería": ["¿Cansancio físico hoy?", "¿La carga emocional está fuerte?"],
-        "Nutrición": ["¿Muchos cálculos hoy?", "¿Has comido bien tú?"]
-    }
-    return preguntas_banco.get(carrera, ["¿Cómo te sientes?", "¿Mucho estrés?"]), consejos[racha % len(consejos)]
+    if racha <= 5: return "🥚", "Fase: Huevo Místico"
+    elif racha <= 30: return "🐥", "Fase: Pollito Bebé"
+    elif racha <= 60: return "🦆", "Fase: Pato Silvestre"
+    elif racha <= 90: return "🦉", "Fase: Búho de Atenea"
+    elif racha <= 120: return "🦅", "Fase: Águila Real"
+    elif racha < 365: return "🦚", "Fase: Pavo Real"
+    else: return "🦅🔥", "Fase: ¡AVE FÉNIX INMORTAL!"
 
 # --- INTERFAZ ---
 if not st.session_state.registrado:
-    st.title("🧠 Mente Sana")
-    nombre = st.text_input("Nombre:")
-    carrera = st.selectbox("Carrera:", ["Medicina", "Enfermería", "Nutrición"])
-    if st.button("Comenzar"):
-        st.session_state.nombre_usuario = nombre
-        st.session_state.carrera_usuario = carrera
-        st.session_state.registrado = True
-        st.rerun()
+    st.markdown("<h1 style='text-align: center; color: #2c3e50;'>🧠 Mente Sana</h1>", unsafe_allow_html=True)
+    with st.container():
+        st.session_state.nombre_usuario = st.text_input("Tu nombre:")
+        st.session_state.carrera_usuario = st.selectbox("Carrera:", ["Medicina", "Enfermería", "Nutrición"])
+        if st.button("Comenzar Viaje", use_container_width=True):
+            st.session_state.registrado = True
+            st.rerun()
 else:
-    st.header(f"Hola {st.session_state.nombre_usuario}")
-    avatar, estado = obtener_sistema_mascota(st.session_state.racha_dias)
+    avatar, fase = obtener_sistema_mascota(st.session_state.racha_dias)
     
+    # Header elegante
     col1, col2 = st.columns([1, 2])
-    col1.markdown(f"<h1 style='font-size:80px'>{avatar}</h1>", unsafe_allow_html=True)
-    col2.write(f"**Racha:** {st.session_state.racha_dias} días")
-    col2.info(estado)
-    
-    preguntas, consejo = obtener_contenido_diario(st.session_state.carrera_usuario, st.session_state.racha_dias)
-    st.warning(f"💡 {consejo}")
+    with col1:
+        st.markdown(f"<div class='card' style='text-align:center; font-size:50px;'>{avatar}</div>", unsafe_allow_html=True)
+    with col2:
+        st.markdown(f"### {st.session_state.nombre_usuario}")
+        st.write(f"**Racha:** {st.session_state.racha_dias} días | **{fase}**")
+        st.info(f"💬 {st.session_state.accion_mascota}")
+
+    # Interacciones rápidas
+    c1, c2 = st.columns(2)
+    if c1.button("👋 Acariciar"): st.session_state.accion_mascota = "¡Tu mascota se siente muy querida! 💕"
+    if c2.button("🎶 Cantar"): st.session_state.accion_mascota = "¡Hicieron un dúo hermoso! 🎵"
+
+    # Inventario
+    with st.expander("🎒 Mochila de Recompensas"):
+        for item, cant in st.session_state.inventario.items():
+            if st.button(f"Usar {item} (Tiene {cant})", use_container_width=True):
+                if cant > 0:
+                    st.session_state.inventario[item] -= 1
+                    st.session_state.accion_mascota = f"¡Usaste {item}! La mascota está feliz."
+                    st.rerun()
+
+    # Cuestionario profesional
+    st.markdown("---")
+    st.markdown("### 📝 Check-in Diario")
+    opciones = {"A) Nunca": 0, "B) A veces": 2, "C) Seguido": 4, "D) Siempre": 6}
     
     puntos = 0
-    for i, q in enumerate(preguntas):
-        puntos += st.slider(q, 0, 5, 0)
+    preguntas = ["¿Te sientes agotado hoy?", "¿La carga de trabajo es excesiva?", "¿Dormiste bien?"]
     
-    if st.button("Analizar"):
-        st.session_state.inventario[random.choice(list(st.session_state.inventario.keys()))] += 1
-        st.success("¡Análisis guardado! Revisa tu mochila.")
+    for i, q in enumerate(preguntas):
+        st.write(f"**{i+1}. {q}**")
+        puntos += opciones[st.radio(f"q{i}", list(opciones.keys()), key=f"q{i}", label_visibility="collapsed")]
+
+    if st.button("🎯 Finalizar Check-in", use_container_width=True):
+        st.session_state.racha_dias += 1
+        st.success("¡Análisis guardado con éxito!")
         st.rerun()
 
     # Barra lateral
-    if st.sidebar.button("Simular día 365"):
-        st.session_state.racha_dias = 365
-        st.rerun()
+    st.sidebar.button("🔥 Saltar al Fénix (Día 365)", on_click=lambda: setattr(st.session_state, 'racha_dias', 365))
