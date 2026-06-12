@@ -1,4 +1,5 @@
 import streamlit as st
+import datetime
 
 # Configuración de la página con estilo moderno y limpio
 st.set_page_config(
@@ -7,7 +8,9 @@ st.set_page_config(
     layout="centered"
 )
 
-# Inicializar los datos de la sesión
+# ==========================================
+# SISTEMA DE RACHA Y MASCOTA (INICIALIZACIÓN)
+# ==========================================
 if "registrado" not in st.session_state:
     st.session_state.registrado = False
 if "nombre_usuario" not in st.session_state:
@@ -15,11 +18,40 @@ if "nombre_usuario" not in st.session_state:
 if "carrera_usuario" not in st.session_state:
     st.session_state.carrera_usuario = ""
 
+# Datos simulados de racha diaria
+if "racha_dias" not in st.session_state:
+    st.session_state.racha_dias = 1
+if "ultimo_test" not in st.session_state:
+    st.session_state.ultimo_test = None
+
+# Función para simular el paso de los días y actualizar la racha
+def actualizar_racha():
+    hoy = datetime.date.today()
+    if st.session_state.ultimo_test is not None:
+        ayer = hoy - datetime.timedelta(days=1)
+        if st.session_state.ultimo_test == ayer:
+            st.session_state.racha_dias += 1
+        elif st.session_state.ultimo_test < ayer:
+            st.session_state.racha_dias = 1  # Se rompió la racha
+    st.session_state.ultimo_test = hoy
+
+# Función para mostrar a la mascota según la racha
+def obtener_mascota(racha):
+    if racha == 1:
+        return "🥚", "¡Tu mascota acaba de nacer! Es un huevito. Haz tu test mañana para que rompa el cascarón."
+    elif racha == 2:
+        return "🐥", "¡Ya nació! Tu pollito de la racha está feliz de verte hoy."
+    elif racha == 3:
+        return "🦉", "¡Ha evolucionado a un Búho Sabio! Te acompaña en tus noches de estudio."
+    elif racha <= 5:
+        return "🦊", f"¡Un Zorro Aventurero! Llevas {racha} días cuidando tu mente, ¡está orgulloso de ti!"
+    else:
+        return "🐉", f"🔥 ¡NIVEL MÁXIMO! Un Dragón Zen. ¡Llevas una racha brutal de {racha} días seguidos!"
+
 # ==========================================
 # PANTALLA DE INICIO (DISEÑO SÚPER AGRADABLE)
 # ==========================================
 if not st.session_state.registrado:
-    # Banner principal con diseño degradado y tipografía estilizada
     st.markdown("""
         <div style='background: linear-gradient(135deg, #1565C0 0%, #1E88E5 100%); padding: 35px; border-radius: 20px; box-shadow: 0px 4px 15px rgba(0, 0, 0, 0.1); text-align: center; margin-bottom: 25px;'>
             <h1 style='color: white; margin: 0; font-family: "Helvetica Neue", sans-serif; font-size: 38px; font-weight: 700;'>🧠 Mente Sana</h1>
@@ -27,14 +59,12 @@ if not st.session_state.registrado:
         </div>
     """, unsafe_allow_html=True)
     
-    # Tarjeta de bienvenida secundaria
     st.markdown("""
         <div style='background-color: #F5F5F5; padding: 18px; border-radius: 12px; border-left: 5px solid #1565C0; margin-bottom: 20px;'>
             <span style='color: #424242; font-size: 15px; font-weight: 500;'>👋 <b>¡Hola! Queremos darte una experiencia personalizada.</b> Cuéntanos un poco sobre ti para adaptar las preguntas a tu día a día de forma inteligente.</span>
         </div>
     """, unsafe_allow_html=True)
     
-    # Contenedor del formulario con bordes estilizados
     with st.container(border=True):
         st.markdown("<p style='color: #1565C0; font-weight: bold; margin-bottom: 5px;'>✨ Datos del Evaluado</p>", unsafe_allow_html=True)
         nombre = st.text_input("¿Cómo te gusta que te llamen? (Nombre o Apodo):", placeholder="Ej. Ani / Fer / Mau")
@@ -44,7 +74,6 @@ if not st.session_state.registrado:
     
     st.markdown("<br>", unsafe_allow_html=True)
     
-    # Botón grande y llamativo de inicio
     if st.button("¡Comenzar mi Test ahora! 🚀", type="primary", use_container_width=True):
         if nombre.strip() == "":
             st.warning("⚠️ ¡Hey! No olvides escribir tu nombre para poder saludarte de verdad al iniciar.")
@@ -55,7 +84,7 @@ if not st.session_state.registrado:
             st.rerun()
 
 # ==========================================
-# CUESTIONARIO CON ENERGÍA POR CARRERA
+# CUESTIONARIO Y PANEL DE MASCOTA
 # ==========================================
 else:
     # Encabezado dinámico y colorido en el test
@@ -66,11 +95,31 @@ else:
         </div>
     """, unsafe_allow_html=True)
     
+    # 🐾 RECUADRO DE LA MASCOTA DE RACHA
+    avatar, estado_mascota = obtener_mascota(st.session_state.racha_dias)
+    
+    with st.container(border=True):
+        col1, col2 = st.columns([1, 4])
+        with col1:
+            st.markdown(f"<h1 style='text-align: center; font-size: 60px; margin: 0;'>{avatar}</h1>", unsafe_allow_html=True)
+        with col2:
+            st.markdown(f"### 🔥 Racha Activa: **{st.session_state.racha_dias} { 'día' if st.session_state.racha_dias == 1 else 'días' }**")
+            st.caption(estado_mascota)
+
+    st.markdown("<br>", unsafe_allow_html=True)
+
     # Menú lateral
     st.sidebar.markdown(f"### 👤 Tu Perfil")
     st.sidebar.write(f"🌟 **Nombre:** {st.session_state.nombre_usuario}")
     st.sidebar.write(f"📚 **Carrera:** {st.session_state.carrera_usuario}")
+    st.sidebar.write(f"🔥 **Racha:** {st.session_state.racha_dias} días")
     st.sidebar.markdown("---")
+    
+    # Botón secreto para simular que avanzó un día (Para que puedas probar la mascota tú mismo)
+    if st.sidebar.button("🛠️ Simular mañana (Probar Racha)"):
+        st.session_state.racha_dias += 1
+        st.rerun()
+        
     if st.sidebar.button("🚪 Cerrar Sesión / Salir"):
         st.session_state.registrado = False
         st.session_state.nombre_usuario = ""
@@ -142,6 +191,7 @@ else:
     # BOTÓN DE RESULTADO 
     # ==========================================
     if st.button("🎯 ¡Analizar mi nivel de Mente Sana!", type="primary", use_container_width=True):
+        actualizar_racha() # Registra el día del test para la racha diaria
         max_puntaje = 60
         st.markdown("---")
         st.markdown("<h3 style='text-align: center; color: #1565C0;'>🎯 Tu Diagnóstico Definitivo</h3>", unsafe_allow_html=True)
@@ -169,7 +219,7 @@ else:
         else:
             st.error(f"🔴 **¡Alerta roja de desgaste, {st.session_state.nombre_usuario}! Tu nivel de estrés es Severo.**")
             st.markdown("""
-            * **a) Diagnóstico:** ¡Estás en cortocircuito! El cansancio se quiere adueñar de ti por completo y estás empujando tu mente mucho más allá de su límite.
+            * **a) Diagnóstico:** ¡Estás en cortocorticuito! El cansancio se quiere adueñar de ti por completo y estás empujando tu mente mucho más allá de su límite.
             * **b) Recomendaciones urgentes:** Necesitas un día de desconexión total. Habla hoy mismo con alguien de confianza (un amigo, tu familia o un orientador) para desahogarte. Ninguna calificación ni entrega vale más que tu salud física y mental.
             * **c) Tu frase motivacional:** 
             > *"Está bien no poder con todo. Eres un ser humano. Cuidar de ti es tu tarea más importante el día de hoy."* ❤️
