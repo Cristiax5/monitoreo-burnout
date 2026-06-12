@@ -4,17 +4,17 @@ import random
 # Configuración de página
 st.set_page_config(page_title="Mente Sana", page_icon="🧠", layout="centered")
 
-# Estilos CSS más cálidos y amigables
+# Estilos CSS cálidos
 st.markdown("""
     <style>
     .stApp { background-color: #fdfcf9; }
     .hero { text-align: center; padding: 40px; background: #eef2f3; border-radius: 30px; color: #2d3748; margin-bottom: 30px; }
     .card { background: #ffffff; padding: 25px; border-radius: 25px; border: 1px solid #edf2f7; margin-bottom: 20px; box-shadow: 0 4px 15px rgba(0,0,0,0.05); }
-    .stButton>button { border-radius: 50px !important; background-color: #63b3ed !important; color: white !important; font-weight: bold; }
+    .stButton>button { border-radius: 50px !important; background-color: #63b3ed !important; color: white !important; font-weight: bold; width: 100%; }
     </style>
     """, unsafe_allow_html=True)
 
-# Lógica de Evolución Progresiva (Día a día)
+# Lógica de Mascota Evolutiva
 def obtener_mascota(racha):
     if racha <= 5: return "🥚", "Huevo Místico"
     elif racha <= 30: return "🐥", "Pollito Bebé"
@@ -28,26 +28,29 @@ def obtener_mascota(racha):
 if "registrado" not in st.session_state: st.session_state.registrado = False
 if "racha" not in st.session_state: st.session_state.racha = 1
 
-# --- PANEL DE ADMINISTRACIÓN (Oculto para presentación) ---
+# --- PANEL DE PRESENTACIÓN ---
 with st.sidebar:
     st.write("---")
     if st.text_input("Clave Admin", type="password") == "Fenix2026":
-        if st.button("Avanzar 1 día"): st.session_state.racha += 1; st.rerun()
+        if st.button("Avanzar 1 día en racha"): st.session_state.racha += 1; st.rerun()
 
 # --- BIENVENIDA ---
 if not st.session_state.registrado:
     st.markdown("<div class='hero'><h1>¡Hola! Es un gusto verte. 🌿</h1><p>Estamos listos para cuidar de tu bienestar mental hoy.</p></div>", unsafe_allow_html=True)
-    nombre = st.text_input("¿Cómo te gusta que te llamen?")
+    st.session_state.nombre = st.text_input("¿Cómo te gusta que te llamen?")
+    st.session_state.carrera = st.selectbox("¿Qué estudias?", ["Medicina", "Enfermería", "Nutrición"])
+    
     if st.button("Comenzar mi cuidado diario"):
-        if nombre:
-            st.session_state.nombre = nombre
+        if st.session_state.nombre:
             st.session_state.registrado = True
             st.rerun()
+        else:
+            st.warning("Por favor, dinos cómo prefieres que te llamemos.")
 else:
     avatar, etapa = obtener_mascota(st.session_state.racha)
     st.markdown(f"<div style='text-align:center; font-size: 90px;'>{avatar}</div>", unsafe_allow_html=True)
-    st.markdown(f"<h2 style='text-align:center; color: #4a5568;'>{st.session_state.nombre}, vas en tu {etapa}</h2>", unsafe_allow_html=True)
-    st.markdown(f"<p style='text-align:center;'>Día de racha: <b>{st.session_state.racha}</b>. ¡Cada día es un paso adelante!</p>", unsafe_allow_html=True)
+    st.markdown(f"<h2 style='text-align:center; color: #4a5568;'>{st.session_state.nombre}, estudiante de {st.session_state.carrera}</h2>", unsafe_allow_html=True)
+    st.markdown(f"<p style='text-align:center;'>Vas en tu {etapa} (Día: <b>{st.session_state.racha}</b>)</p>", unsafe_allow_html=True)
     
     st.markdown("---")
     
@@ -73,13 +76,13 @@ else:
         st.markdown("</div>", unsafe_allow_html=True)
     
     if st.button("Finalizar Análisis"):
-        st.session_state.racha += 1 # Evolución progresiva diaria
+        st.session_state.racha += 1
         st.markdown("---")
         if puntos >= 15:
-            st.error("⚠️ **Diagnóstico de atención**")
-            st.write("Has tenido días pesados. Por favor, intenta:")
+            st.error("⚠️ **Diagnóstico: Atención Necesaria**")
+            st.write("Tu bienestar es prioridad. Por favor, intenta:")
             st.info("🌬️ **Respiración 4-7-8:** Inhala 4s, mantén 7s, exhala 8s.")
-            st.info("🌍 **Técnica 5-4-3-2-1:** Reconecta con tu entorno físico.")
+            st.info("🌍 **Técnica 5-4-3-2-1:** Identifica 5 cosas que veas, 4 que toques, 3 que oigas, 2 que huelas, 1 que pruebes.")
         else:
             st.success("✅ ¡Qué bien! Tu estado emocional es equilibrado.")
-        st.info(f"✨ **Frase:** '{random.choice(['Eres más que tus deberes.', 'La constancia es la llave.', 'Cuidar de ti es tu mayor éxito.'])}'")
+        st.info(f"✨ **Frase para {st.session_state.nombre}:** '{random.choice(['Eres más que tus deberes.', 'La constancia es la llave.', 'Cuidar de ti es tu mayor éxito.'])}'")
