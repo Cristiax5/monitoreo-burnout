@@ -23,39 +23,43 @@ def obtener_mascota(racha):
     elif racha < 365: return "🦚", "Pavo Real"
     else: return "🔥", "¡AVE FÉNIX INMORTAL!"
 
-# Inicialización de estado con persistencia (Session State)
+# Inicialización
 if "registrado" not in st.session_state: st.session_state.registrado = False
 if "racha" not in st.session_state: st.session_state.racha = 1
-if "nombre" not in st.session_state: st.session_state.nombre = ""
 
-# --- BARRA LATERAL (Solo para tu presentación) ---
+# --- BARRA LATERAL PROTEGIDA ---
 with st.sidebar:
-    st.title("🔧 Modo Presentación")
-    if st.button("🔥 Saltar al Fénix"):
-        st.session_state.racha = 366
-        st.rerun()
+    st.title("⚙️ Panel de Control")
+    password = st.text_input("Clave de Administrador:", type="password")
+    if password == "Fenix2026":  # Tu clave secreta
+        st.success("Modo Edición Activado")
+        if st.button("🔥 Evolucionar a Fénix"):
+            st.session_state.racha = 366
+            st.rerun()
+        if st.button("🔄 Resetear Racha"):
+            st.session_state.racha = 1
+            st.rerun()
 
-# --- BIENVENIDA MÁS CÁLIDA ---
+# --- BIENVENIDA ---
 if not st.session_state.registrado:
     st.markdown("<div class='hero'><h1>¡Hola! Qué gusto verte por aquí. 🧠</h1><p>Esta es tu zona segura para cuidar de tu bienestar mental.</p></div>", unsafe_allow_html=True)
-    st.session_state.nombre = st.text_input("¿Cómo te gusta que te llamen?")
-    carrera = st.selectbox("¿Qué estudias actualmente?", ["Medicina", "Enfermería", "Nutrición"])
+    nombre = st.text_input("¿Cómo te gusta que te llamen?")
+    carrera = st.selectbox("¿Qué estudias?", ["Medicina", "Enfermería", "Nutrición"])
     if st.button("Comenzar mi cuidado diario", use_container_width=True):
-        if st.session_state.nombre:
+        if nombre:
+            st.session_state.nombre = nombre
             st.session_state.registrado = True
             st.rerun()
         else:
             st.warning("Por favor, dinos cómo prefieres que te llamemos.")
 else:
-    # Mascota y Racha (Persistente)
     avatar, etapa = obtener_mascota(st.session_state.racha)
     st.markdown(f"<div style='text-align:center; font-size: 80px;'>{avatar}</div>", unsafe_allow_html=True)
     st.markdown(f"<h3 style='text-align:center;'>{st.session_state.nombre}, vas en tu {etapa}</h3>", unsafe_allow_html=True)
-    st.markdown(f"<p style='text-align:center;'>Llevas una racha de <b>{st.session_state.racha} días</b> siendo constante. ¡Felicidades!</p>", unsafe_allow_html=True)
+    st.markdown(f"<p style='text-align:center;'>Llevas una racha de <b>{st.session_state.racha} días</b> constante. ¡Felicidades!</p>", unsafe_allow_html=True)
     
     st.markdown("---")
     
-    # 10 Preguntas en Tarjetas
     preguntas = [
         ("🍎", "¿Sientes que por culpa de las clases comes puras tonterías o dejaste el ejercicio?"),
         ("😴", "¿Tu calidad de sueño ha sido deficiente esta semana?"),
@@ -81,13 +85,10 @@ else:
     if st.button("Finalizar Análisis", use_container_width=True):
         st.session_state.racha += 1
         st.markdown("---")
-        
         if puntos >= 15:
             st.error("⚠️ **Diagnóstico: Alerta de Estrés**")
-            st.write("Tu sistema biopsicosocial muestra señales de agotamiento. Te sugerimos:")
-            st.info("🌬️ **Respiración Diafragmática (4-7-8):** Inhala en 4s, mantén 7s, exhala en 8s.")
-            st.info("🌍 **Técnica 5-4-3-2-1:** Identifica 5 cosas que veas, 4 que toques, 3 que oigas, 2 que huelas, 1 que pruebes.")
+            st.info("🌬️ **Respiración 4-7-8:** Inhala 4s, mantén 7s, exhala 8s.")
+            st.info("🌍 **Técnica 5-4-3-2-1:** Reconecta con tus sentidos.")
         else:
-            st.success("✅ Tu equilibrio emocional es estable. ¡Vas por excelente camino!")
-            
-        st.info(f"✨ **Frase para {st.session_state.nombre}:** '{random.choice(['Eres más que tus calificaciones.', 'La constancia es la llave.', 'Cuidar de ti es tu mayor éxito.'])}'")
+            st.success("✅ ¡Equilibrio emocional estable!")
+        st.info(f"✨ **Frase:** '{random.choice(['Eres más que tus calificaciones.', 'La constancia es la llave.', 'Cuidar de ti es tu mayor éxito.'])}'")
